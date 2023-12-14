@@ -4,10 +4,13 @@ import routes from "../routes";
 import { api } from "../api";
 import { ICFManagerInfo } from "../interface/info.interface";
 import { perttyAxios } from "../utils/pertty-axios";
+// @ts-ignore
+import VueTurnstile from "vue-turnstile";
 
 const show = ref(false);
 const loaded = ref(false);
 const loadingBtn = ref(false);
+const cfToken = ref("");
 
 // Get query
 const id = routes.currentRoute.value.query.id;
@@ -17,6 +20,8 @@ const data = ref<ICFManagerInfo | null>(null);
 const ip = ref("");
 
 async function doUpdateNewIP() {
+  if (!cfToken.value) return alert("Please verify captcha");
+
   loadingBtn.value = true;
 
   // Do request to server
@@ -25,9 +30,10 @@ async function doUpdateNewIP() {
       id,
       token,
       ip: ip.value,
+      "cf-turnstile-response": cfToken.value,
     })
   );
-  
+
   loadingBtn.value = false;
 
   if (!info.code) {
@@ -71,8 +77,6 @@ onMounted(async () => {
   show.value = true;
   loaded.value = true;
   ip.value = info.data.ip;
-
-  console.log(info);
 });
 </script>
 
@@ -132,6 +136,10 @@ onMounted(async () => {
                 class="border border-slate-400 px-2 rounded-md py-2 w-full"
               />
             </div>
+            <vue-turnstile
+              site-key="0x4AAAAAAAOlY263ZjuhUAyX"
+              v-model="cfToken"
+            />
             <button
               type="button"
               @click="doUpdateNewIP"
@@ -163,6 +171,27 @@ onMounted(async () => {
             </button>
           </div>
         </h4>
+      </div>
+
+      <div class="text-center my-3">
+        <div>
+          <span>Made with 💖 by </span>
+          <a
+            href="https://m307.dev"
+            class="no-underline hover:underline text-sky-500 hover:text-sky-700 duration-300"
+            >M-307</a
+          >
+        </div>
+        <div>
+          <span class="text-sm text-gray-500"
+            >This site is protected by
+            <a
+              href="https://www.cloudflare.com/en-gb/products/turnstile/"
+              class="no-underline hover:underline text-amber-500 hover:text-amber-700 duration-300"
+              >Cloudflare Turnstile.</a
+            ></span
+          >
+        </div>
       </div>
     </div>
   </div>
